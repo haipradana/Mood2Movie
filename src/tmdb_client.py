@@ -2,7 +2,7 @@
 import time
 import requests
 import pandas as pd
-from config import TMDB_API_KEY, CSV_FILE, DATA_PATH
+from .config import TMDB_API_KEY, CSV_FILE, DATA_PATH
 
 _BASE = "https://api.themoviedb.org/3"
 _HEADERS = {"Accept": "application/json"}
