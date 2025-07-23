@@ -20,12 +20,15 @@ def fetch_popular(pages: int = 5) -> pd.DataFrame:
     """grab *pages* of popular movies"""
     movies = []
     for page in range(1, pages + 1):
-        res = _get("movie/popular", {"page": page})
-        movies.extend(res["results"])
+        # res = _get("movie/popular", {"page": page})
+        # movies.extend(res["results"])
+        movies.extend(_get("movie/popular", {"page": page})["results"])
+        movies.extend(_get("movie/top_rated", {"page": page})["results"])
         time.sleep(0.5)
     df = pd.json_normalize(movies)
-    keep = ["id", "title", "genre_ids", "overview", "vote_average", "poster_path"]
-    return df[keep].drop_duplicates("id")
+    keep = ["id", "title", "overview", "genre_ids", "vote_average", "poster_path"]
+    df = df[df["overview"].str.len() > 50].drop_duplicates("id")
+    return df[keep]
 
 def cache_movies(pages: int = 5):
     df = fetch_popular(pages)

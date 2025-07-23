@@ -1,6 +1,7 @@
 """load embedder for movie overview"""
 import numpy as np
 import pandas as pd
+import os
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 from .config import EMBEDDING_MODEL, CSV_FILE, EMBEDDING_FILE
@@ -10,7 +11,7 @@ _model: SentenceTransformer | None = None #global singleton
 def _get_model() -> SentenceTransformer:
     global _model
     if _model is None:
-        _model = SentenceTransformer(EMBEDDING_MODEL)
+        _model = SentenceTransformer(EMBEDDING_MODEL, use_auth_token=os.environ["HF_TOKEN"])
     return _model
 
 def embed_texts(texts: list[str], batch_size: int = 32):
@@ -22,6 +23,6 @@ def build_embeddings(force: bool = False):
         print(f"Embeddings already exist in {EMBEDDING_FILE}")
         return
     df = pd.read_csv(CSV_FILE)
-    embs = embed_texts(df["overview"]).fillna("").tolist()
+    embs = embed_texts(df["overview"].fillna("").tolist())
     np.save(EMBEDDING_FILE, embs)
     print(f"Embeddings saved to {EMBEDDING_FILE}")
