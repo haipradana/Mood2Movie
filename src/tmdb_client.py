@@ -24,7 +24,7 @@ def fetch_popular(pages: int = 5) -> pd.DataFrame:
         movies.extend(res["results"])
         time.sleep(0.5)
     df = pd.json_normalize(movies)
-    keep = ["id", "title", "genre_ids", "vote_average", "poster_path"]
+    keep = ["id", "title", "genre_ids", "overview", "vote_average", "poster_path"]
     return df[keep].drop_duplicates("id")
 
 def cache_movies(pages: int = 5):
