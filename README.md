@@ -6,7 +6,7 @@ A smart-simple movie recommender that understands your mood and suggest the perf
 
 [Lihat Demo Video](https://github.com/haipradana/Mood2Movie/blob/main/demo.mp4)
 <a href="https://youtu.be/_Q6pRmcKGks" target="_blank">
-  <img src="https://github.com/haipradana/Mood2Movie/blob/main/screenshot.png?raw=true" width="50%">
+  <img src="https://github.com/haipradana/Mood2Movie/blob/main/screenshot.png?raw=true" width="25%">
 </a>
 ## Apa Fiturnya?
 
