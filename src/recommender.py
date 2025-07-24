@@ -40,6 +40,13 @@ GENRE_PRIORITIES = {
     "adventure": [12],
 }
 
+INCOMPATIBLE_GENRES = {
+    "sad": [53, 27, 80],        # Avoid Thriller, Horror, Crime
+    "emotional": [53, 27, 80],  
+    "thrilling": [10751, 16],   # Avoid Family, Animation
+    "suspense": [10751, 16],    
+}
+
 # fuzzywuzzy untuk menghitung kesamaan judul
 def compute_title_similarity(query: str, title: str) -> float:
     ratio = fuzz.ratio(query.lower(), title.lower())
@@ -51,9 +58,17 @@ def compute_genre_score(genre_ids: str, tags: list[str]) -> float:
         return 0.5
     
     score = 0
+    genre_ids_list = eval(genre_ids)
+    
+    # Cek incompatible genres
+    for tag in tags:
+        incompatible = INCOMPATIBLE_GENRES.get(tag.lower(), [])
+        if any(g in genre_ids_list for g in incompatible):
+            return 0.1
+        
     for tag in tags:
         tag_genres = GENRE_PRIORITIES.get(tag.lower(), [])
-        matches = sum(1 for g in genre_ids if g in tag_genres)
+        matches = sum(1 for g in genre_ids_list if g in tag_genres)
         if matches > 0:
             score += (matches / len(tag_genres))
     return min(1.0, score / max(1, len(tags)))
