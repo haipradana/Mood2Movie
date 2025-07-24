@@ -43,6 +43,9 @@ GENRE_PRIORITIES = {
 INCOMPATIBLE_GENRES = {
     "sad": [53, 27, 80],        # Avoid Thriller, Horror, Crime
     "emotional": [53, 27, 80],  
+    "heartwarming": [53, 27, 80, 9648, 10752],  # Also avoid War
+    "calm": [53, 27, 80, 28],     
+    "relaxing": [53, 27, 80, 28],  
     "thrilling": [10751, 16],   # Avoid Family, Animation
     "suspense": [10751, 16],    
 }
@@ -124,7 +127,7 @@ class MovieRecommender:
             )
         else:
             final_score = (
-                0.2 * overview_sims + 0.45 * genre_scores + 0.35 * title_sims
+                0.15 * overview_sims + 0.45 * genre_scores + 0.4 * title_sims
             )
 
         top_i = np.argsort(-final_score)[:top_k]
