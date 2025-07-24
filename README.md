@@ -4,6 +4,15 @@ A smart-simple movie recommender that understands your mood and suggest the perf
 
 **Try it now: [mood2movie.streamlit.app](https://mood2movie.streamlit.app/)**
 
+<div style="text-align: center;">
+  <a href="https://youtu.be/_Q6pRmcKGks" target="_blank">
+    Lihat Demo Video
+    <br>
+    <img src="https://github.com/haipradana/Mood2Movie/blob/main/screenshot.png?raw=true" width="50%">
+  </a>
+</div>
+
+
 ## Apa Fiturnya?
 
 - **Mood-Based Recommendations**: Rekomendasi film berdasarkan input mood atau ketertarikan
