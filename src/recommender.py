@@ -13,8 +13,8 @@ GENRE_PRIORITIES = {
     "adrenaline": [28, 53],  # Action, Thriller
     "thrilling": [28, 53],
     "angry": [28, 53],
-    "sad": [18],                         # Drama
-    "emotional": [18, 10749],            # Drama + Romance
+    "sad": [18, 10749, 10751],  # Drama, Romance, Family
+    "emotional": [18, 10749, 10751, 16],
     "heartwarming": [10751, 10749, 16],  # Family, Romance, Animation
     "funny": [35],                       # Comedy
     "romantic": [10749],                 # Romance
@@ -85,7 +85,7 @@ class MovieRecommender:
             )
         else:
             final_score = (
-                0.3 * overview_sims + 0.35 * genre_scores + 0.35 * title_sims
+                0.2 * overview_sims + 0.45 * genre_scores + 0.35 * title_sims
             )
 
         top_i = np.argsort(-final_score)[:top_k]

@@ -19,6 +19,11 @@ You MUST only choose tags from this whitelist:
  "epic", "historical", "space", "sci-fi", "crime", "documentary", "anime",
  "animated", "action", "drama", "romance", "adventure"]
 
+ IMPORTANT RULES:
+    1. For sad/emotional queries, prioritize heartwarming and uplifting content
+    2. Avoid suggesting dark or disturbing themes
+    3. Include "heartwarming" tag for emotional support
+    
 DO NOT invent new tags.
 
 Format your output as JSON:

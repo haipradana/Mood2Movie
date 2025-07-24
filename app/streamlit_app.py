@@ -5,8 +5,6 @@ st.set_page_config(page_title="Mood2Movie Film Recommender", page_icon=":movie_c
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-"""frontend streamlit"""
-
 import pandas as pd
 from src.recommender import MovieRecommender
 from src.config import CSV_FILE, BASE_POSTER_URL, EMBEDDING_FILE
@@ -21,9 +19,9 @@ if not Path(CSV_FILE).exists() or not Path(EMBEDDING_FILE).exists():
 
 recommender = MovieRecommender()
 
-query_raw = st.text_input("Apa yang ingin kamu tonton hari ini?", placeholder="angry or romantic")
-if st.button("Rekomendasikan") and query_raw:
-    with st.spinner("Memahami mood kamu ..."):
+query_raw = st.text_input("What's your mood today? Or type what you want to watch", placeholder="I'm in a thrilling mood, maybe something of suspense and action")
+if st.button("Recommend") and query_raw:
+    with st.spinner("Understanding your mood ..."):
         enhanced_query, tags = enhance_prompt(query_raw)
         recs = recommender.recommend(enhanced_query, tags=tags, top_k=6)
     
@@ -33,6 +31,6 @@ if st.button("Rekomendasikan") and query_raw:
             if pd.notna(row.poster_path):
                 st.image(f"{BASE_POSTER_URL}{row.poster_path}")
             st.subheader(row.title)
-            st.text(f"⭐ {row.vote_average:.1f}/10 | Sim: {row.similarity:.2f}")
+            st.text(f"⭐ {row.vote_average:.1f}/10 | score: {row.final_score:.2f}")
             overview_text = row.overview if pd.notna(row.overview) else ""
             st.caption(overview_text[:150] + "...")
