@@ -13,4 +13,5 @@ ROOT_PATH = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT_PATH / "data"
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDING_FILE = DATA_PATH / "movie_embeddings.npy"
+TITLE_EMBEDDING_FILE = DATA_PATH / "title_embeddings.npy"
 CSV_FILE = DATA_PATH / "movies_cache.csv"

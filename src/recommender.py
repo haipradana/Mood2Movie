@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from fuzzywuzzy import fuzz
-from .config import EMBEDDING_FILE, CSV_FILE
+from .config import EMBEDDING_FILE, CSV_FILE, TITLE_EMBEDDING_FILE
 from .embedder import embed_texts, _get_model
 
 GENRE_PRIORITIES = {
@@ -47,37 +47,61 @@ INCOMPATIBLE_GENRES = {
     "suspense": [10751, 16],    
 }
 
+def safe_eval_list(x):
+    """Safely convert string representation of list to actual list"""
+    try:
+        if pd.isna(x):
+            return []
+        return eval(x)
+    except:
+        # Handle string format: '[1, 2, 3]' atau '1,2,3'
+        x = str(x).strip('[]')
+        return [int(i.strip()) for i in x.split(',') if i.strip()]
+    
 # fuzzywuzzy untuk menghitung kesamaan judul
 def compute_title_similarity(query: str, title: str) -> float:
     ratio = fuzz.ratio(query.lower(), title.lower())
     partial_ratio = fuzz.partial_ratio(query.lower(), title.lower())
     return max(ratio, partial_ratio)/100.0
 
-def compute_genre_score(genre_ids: str, tags: list[str]) -> float:
+def compute_genre_score(genre_ids: str | list, tags: list[str]) -> float:
     if not tags:
         return 0.5
     
     score = 0
-    genre_ids_list = eval(genre_ids)
+    
+    # Handle input format
+    if isinstance(genre_ids, str):
+        try:
+            # Jika string dalam format list Python ('[1, 2, 3]')
+            genre_ids_list = [int(x.strip()) for x in genre_ids.strip('[]').split(',') if x.strip()]
+        except:
+            return 0.5  # Return default jika format tidak valid
+    else:
+        # Jika sudah dalam bentuk list
+        genre_ids_list = genre_ids
     
     # Cek incompatible genres
     for tag in tags:
         incompatible = INCOMPATIBLE_GENRES.get(tag.lower(), [])
         if any(g in genre_ids_list for g in incompatible):
-            return 0.1
+            return 0.1  # Score rendah untuk genre yang tidak cocok
         
+    # Hitung score berdasarkan matching genres
     for tag in tags:
         tag_genres = GENRE_PRIORITIES.get(tag.lower(), [])
         matches = sum(1 for g in genre_ids_list if g in tag_genres)
         if matches > 0:
             score += (matches / len(tag_genres))
+            
     return min(1.0, score / max(1, len(tags)))
 
 class MovieRecommender:
     def __init__(self):
         self.movies = pd.read_csv(CSV_FILE)
+        self.movies["genre_ids"] = self.movies["genre_ids"].apply(safe_eval_list)
         self.embs = np.load(EMBEDDING_FILE)
-        self.title_embs = embed_texts(self.movies["title"].tolist())
+        self.title_embs = np.load(TITLE_EMBEDDING_FILE)
 
     def recommend(self, query: str, tags: list[str] = [], top_k: int = 6):
         q_emb = embed_texts([query])[0].reshape(1, -1)
@@ -90,8 +114,8 @@ class MovieRecommender:
         )
 
         genre_scores = self.movies["genre_ids"].apply(
-            lambda g: compute_genre_score(eval(g), tags)
-            )
+            lambda g: compute_genre_score(g, tags)
+        )
         
         # adaptive scoring based on title similarity
         if title_fuzzy.max() > 0.8:

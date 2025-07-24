@@ -4,7 +4,7 @@ import pandas as pd
 import os
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
-from .config import EMBEDDING_MODEL, CSV_FILE, EMBEDDING_FILE
+from .config import EMBEDDING_MODEL, CSV_FILE, EMBEDDING_FILE, TITLE_EMBEDDING_FILE
 
 _model: SentenceTransformer | None = None #global singleton
 
@@ -26,3 +26,12 @@ def build_embeddings(force: bool = False):
     embs = embed_texts(df["overview"].fillna("").tolist())
     np.save(EMBEDDING_FILE, embs)
     print(f"Embeddings saved to {EMBEDDING_FILE}")
+
+def build_title_embeddings(force: bool = False):
+    if TITLE_EMBEDDING_FILE.exists() and not force:
+        print(f"Title embeddings already exist in {TITLE_EMBEDDING_FILE}")
+        return
+    df = pd.read_csv(CSV_FILE)
+    embs = embed_texts(df["title"].fillna("").tolist())
+    np.save(TITLE_EMBEDDING_FILE, embs)
+    print(f"Title embeddings saved to {TITLE_EMBEDDING_FILE}")
