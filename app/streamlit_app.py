@@ -33,6 +33,6 @@ if st.button("Rekomendasikan") and query_raw:
             if pd.notna(row.poster_path):
                 st.image(f"{BASE_POSTER_URL}{row.poster_path}")
             st.subheader(row.title)
-            st.text(f"⭐ {row.vote_average}/10 | Similarity: {row.similarity:.2f}")
+            st.text(f"⭐ {row.vote_average:.1f}/10 | Sim: {row.similarity:.2f}")
             overview_text = row.overview if pd.notna(row.overview) else ""
             st.caption(overview_text[:150] + "...")

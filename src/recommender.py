@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+from fuzzywuzzy import fuzz
 from .config import EMBEDDING_FILE, CSV_FILE
 from .embedder import embed_texts, _get_model
 
@@ -39,27 +40,60 @@ GENRE_PRIORITIES = {
     "adventure": [12],
 }
 
-def compute_genre_score(genre_ids, tags):
+# fuzzywuzzy untuk menghitung kesamaan judul
+def compute_title_similarity(query: str, title: str) -> float:
+    ratio = fuzz.ratio(query.lower(), title.lower())
+    partial_ratio = fuzz.partial_ratio(query.lower(), title.lower())
+    return max(ratio, partial_ratio)/100.0
+
+def compute_genre_score(genre_ids: str, tags: list[str]) -> float:
+    if not tags:
+        return 0.5
+    
     score = 0
     for tag in tags:
-        for gid in GENRE_PRIORITIES.get(tag.lower(), []):
-            if gid in genre_ids:
-                score += 1
-    return score / max(1, len(genre_ids))
+        tag_genres = GENRE_PRIORITIES.get(tag.lower(), [])
+        matches = sum(1 for g in genre_ids if g in tag_genres)
+        if matches > 0:
+            score += (matches / len(tag_genres))
+    return min(1.0, score / max(1, len(tags)))
 
 class MovieRecommender:
     def __init__(self):
         self.movies = pd.read_csv(CSV_FILE)
         self.embs = np.load(EMBEDDING_FILE)
+        self.title_embs = embed_texts(self.movies["title"].tolist())
 
     def recommend(self, query: str, tags: list[str] = [], top_k: int = 6):
         q_emb = embed_texts([query])[0].reshape(1, -1)
-        sims = cosine_similarity(q_emb, self.embs)[0]
-        genre_scores = self.movies["genre_ids"].apply(lambda g: compute_genre_score(eval(g), tags))
-        final_score = 0.8 * sims + 0.2 * genre_scores
+
+
+        overview_sims = cosine_similarity(q_emb, self.embs)[0]
+        title_sims = cosine_similarity(q_emb, self.title_embs)[0]
+        title_fuzzy = self.movies["title"].apply(
+            lambda t: compute_title_similarity(query, t)
+        )
+
+        genre_scores = self.movies["genre_ids"].apply(
+            lambda g: compute_genre_score(eval(g), tags)
+            )
+        
+        # adaptive scoring based on title similarity
+        if title_fuzzy.max() > 0.8:
+            final_score = (
+                0.5 * title_fuzzy + 0.2 * overview_sims + 0.3 * genre_scores
+            )
+        else:
+            final_score = (
+                0.3 * overview_sims + 0.35 * genre_scores + 0.35 * title_sims
+            )
+
         top_i = np.argsort(-final_score)[:top_k]
         results = self.movies.iloc[top_i].copy()
-        results["similarity"] = sims[top_i]
-        results["genre_boost"] = genre_scores.iloc[top_i].values
-        results["score"] = final_score[top_i]
+        
+        results["overview_sim"] = overview_sims[top_i]
+        results["title_sim"] = title_sims[top_i]
+        results["genre_score"] = genre_scores[top_i]
+        results["final_score"] = final_score[top_i]
+
         return results.reset_index(drop=True)
